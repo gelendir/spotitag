@@ -1,0 +1,6 @@
+secrets
+playlists
+*.egg-info
+.cache*
+.python-version
+__pycache__
