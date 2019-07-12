@@ -5,7 +5,12 @@ setup(
     version='0.1',
     packages=find_packages(),
     zip_safe=False,
+    scripts=[
+        'bin/spotitag',
+    ],
     install_requires=[
         'spotipy',
+        'prompt_toolkit',
+        'click',
     ],
 )

@@ -1,28 +1,18 @@
-import json
-import os
 
-import spotipy
-import spotipy.util as util
-
-
-class Client:
-
-    SCOPES = "user-library-read,user-read-playback-state,user-modify-playback-state"
-
-    @classmethod
-    def login(cls, username):
-        token = util.prompt_for_user_token(username, cls.SCOPES)
-        if not token:
-            raise Exception("did not obtain token")
-        return cls(spotipy.Spotify(auth=token))
+class Metadata:
 
     def __init__(self, sp):
         self.sp = sp
 
     def find_playlist(self, name):
-        for playlist in self.sp.current_user_playlists()['items']:
-            if playlist['name'] == name:
-                return playlist
+        offset = 0
+        response = self.sp.current_user_playlists()
+        while len(response['items']) != 0:
+            for playlist in response['items']:
+                if playlist['name'] == name:
+                    return playlist
+            offset += 50
+            response = self.sp.current_user_playlists(offset=offset)
 
     def tracks(self, playlist_id):
         return list(self.iter_tracks(playlist_id))
@@ -49,6 +39,3 @@ class Client:
     def find_bpm(self, track):
         response = self.sp.audio_features(track['id'])
         return response[0]['tempo']
-
-    def active_devices(self):
-        return [d for d in self.sp.devices()['devices'] if d['is_active']]

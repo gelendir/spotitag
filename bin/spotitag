@@ -1,0 +1,82 @@
+#!/usr/bin/env python
+
+import click
+import os
+import json
+
+from spotitag.util import login, pick_device
+from spotitag.metadata import Metadata
+from spotitag import ui
+
+
+@click.group()
+@click.option('--username', envvar='USERNAME', required=True, help='spotify username')
+@click.pass_context
+def cli(ctx, username):
+    os.putenv("SPOTIPY_REDIRECT_URI", "http://localhost")
+    if not os.environ.get('SPOTIPY_CLIENT_ID'):
+        raise Exception("SPOTIPY_CLIENT_ID required")
+    if not os.environ.get('SPOTIPY_CLIENT_SECRET'):
+        raise Exception("SPOTIPY_CLIENT_SECRET required")
+
+    ctx.ensure_object(dict)
+    ctx.obj['client'] = login(username)
+
+
+@cli.command(name='import', help='import a spotify playlist to JSON')
+@click.argument('playlist')
+@click.option('--output', help='output JSON to file')
+@click.pass_context
+def import_(ctx, playlist, output):
+    metadata = Metadata(ctx.obj['client'])
+
+    info = metadata.find_playlist(playlist)
+    if not info:
+        raise Exception(f"playlist {playlist} not found")
+
+    tracks = metadata.tracks(info['id'])
+
+    if not output:
+        output = f"{playlist['name']}.json"
+
+    with open(output, mode='w') as f:
+        f.write(json.dumps(tracks))
+
+
+@cli.command(help='compare spotify BPM with a tapped BPM')
+@click.argument('playlist')
+@click.option('--output', help='output to a different file. Default: write to same file')
+@click.pass_context
+def bpm(ctx, playlist, output):
+    if not output:
+        output = playlist
+
+    with open(playlist) as f:
+        tracks = json.loads(f.read())
+
+    device = pick_device(ctx.obj['client'])
+    tracks = ui.run(ctx.obj['client'], device['id'], tracks)
+
+    with open(output, mode='w') as f:
+        f.write(json.dumps(tracks))
+
+
+@cli.command(help="export a playlist to spotify")
+@click.argument('filename')
+@click.argument('playlist')
+@click.option('--public/--no-public', default=False, help='make playlist public or not')
+@click.pass_context
+def export(ctx, filename, playlist, public):
+    with open(filename) as f:
+        tracks = json.loads(f.read())
+
+    client = ctx.obj['client']
+    user = client.current_user()
+    response = client.user_playlist_create(user['id'], playlist, public=public)
+
+    track_ids = [t['id'] for t in tracks]
+    client.user_playlist_add_tracks(user['id'], response['id'], track_ids)
+
+
+if __name__ == "__main__":
+    cli()
