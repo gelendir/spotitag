@@ -6,12 +6,29 @@ from spotitag.ticker import Ticker
 from prompt_toolkit.application import Application
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout import Layout
-from prompt_toolkit.layout.containers import HSplit, VSplit
+from prompt_toolkit.layout.containers import HSplit, VSplit, FloatContainer, Float, ConditionalContainer
+from prompt_toolkit.filters import Condition
 from prompt_toolkit.widgets import (
     Label,
     Frame,
     TextArea,
 )
+
+HELP_TEXT = """
+Shift - Right:  next track
+Shift - Left:   previous track
+Shift - Up:     fast-forward track
+Shift - Down:   rewind track
+Tab:            Tap a BPM
+Ctrl - s:       Add Spotify BPM to tags
+Ctrl - t:       Add tapped BPM to tags
+Ctrl - q:       Quit and save tags to file
+"""
+
+
+class State:
+    show_help = False
+
 
 player = None
 ticker = None
@@ -24,31 +41,45 @@ tapped_bpm = TextArea(read_only=True, multiline=False, focusable=False)
 tags_area = TextArea(focusable=True)
 
 layout = Layout(
-    HSplit([
-        Frame(
-            VSplit([
-                HSplit([
-                    Label(text="Title:"),
-                    Label(text="Album:"),
-                    Label(text="Artists:"),
-                    Label(text="BPM:"),
-                    Label(text="Tapped BPM:"),
-                ], width=12),
-                HSplit([
-                    title,
-                    album,
-                    artists,
-                    bpm,
-                    tapped_bpm,
+    FloatContainer(
+        content=HSplit([
+            Frame(
+                VSplit([
+                    HSplit([
+                        Label(text="Title:"),
+                        Label(text="Album:"),
+                        Label(text="Artists:"),
+                        Label(text="BPM:"),
+                        Label(text="Tapped BPM:"),
+                    ], width=12),
+                    HSplit([
+                        title,
+                        album,
+                        artists,
+                        bpm,
+                        tapped_bpm,
+                    ]),
                 ]),
-            ]),
-            title='Information'
-        ),
-        Frame(
-            tags_area,
-            title='Tags'
-        )
-    ])
+                title='Information'
+            ),
+            Frame(
+                tags_area,
+                title='Tags'
+            ),
+            Label(text="Press '?' for help"),
+        ]),
+        floats=[
+            Float(
+                ConditionalContainer(
+                    content=Frame(
+                        Label(text=HELP_TEXT),
+                        title="Help"
+                    ),
+                    filter=Condition(lambda: State.show_help)
+                )
+            )
+        ]
+    )
 )
 
 kb = KeyBindings()
@@ -105,6 +136,11 @@ def tag_tapped_bpm(event):
 @kb.add('c-s')
 def tag_spotify_bpm(event):
     tag_bpm(player.current_track()['bpm'])
+
+
+@kb.add('?')
+def toggle_help(event):
+    State.show_help = not State.show_help
 
 
 def tag_bpm(bpm):
