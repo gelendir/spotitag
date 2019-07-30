@@ -41,3 +41,6 @@ class Player:
 
     def set_tags(self, tags):
         self.current_track()['tags'] = tags
+
+    def is_last_track(self):
+        return self.position == len(self.tracks) - 1

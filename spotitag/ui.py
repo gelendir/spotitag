@@ -64,6 +64,10 @@ def _(event):
 @kb.add('s-right')
 def next(event):
     player.set_tags(parse_tags())
+    if player.is_last_track():
+        event.app.exit()
+        return
+
     player.next()
     reset_ticker()
     display_track()
