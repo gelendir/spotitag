@@ -55,12 +55,13 @@ kb = KeyBindings()
 application = Application(layout=layout, key_bindings=kb, full_screen=True)
 
 
+@kb.add('c-q')
 @kb.add('c-c')
 def _(event):
     event.app.exit()
 
 
-@kb.add('c-n')
+@kb.add('s-right')
 def next(event):
     player.set_tags(parse_tags())
     player.next()
@@ -68,7 +69,7 @@ def next(event):
     display_track()
 
 
-@kb.add('c-p')
+@kb.add('s-left')
 def previous(event):
     player.set_tags(parse_tags())
     player.previous()
@@ -76,12 +77,12 @@ def previous(event):
     display_track()
 
 
-@kb.add('c-q')
+@kb.add('s-down')
 def rewind(event):
     player.rewind(10)
 
 
-@kb.add('c-w')
+@kb.add('s-up')
 def fast_forward(event):
     player.fast_forward(10)
 
@@ -92,7 +93,7 @@ def tap(event):
     tapped_bpm.text = str(round(ticker.tapped_bpm()))
 
 
-@kb.add('c-b')
+@kb.add('c-t')
 def tag_tapped_bpm(event):
     tag_bpm(ticker.tapped_bpm())
 
