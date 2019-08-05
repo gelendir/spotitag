@@ -25,22 +25,45 @@ def cli(ctx, username):
 
 @cli.command(name='import', help='import a spotify playlist to JSON')
 @click.argument('playlist')
+@click.option('--user/--no-user', help="search current user's playlists")
 @click.option('--output', help='output JSON to file')
 @click.pass_context
-def import_(ctx, playlist, output):
+def import_(ctx, playlist, user, output):
     metadata = Metadata(ctx.obj['client'])
 
-    info = metadata.find_playlist(playlist)
-    if not info:
-        raise Exception(f"playlist {playlist} not found")
+    if user:
+        results = metadata.find_user_playlists(playlist)
+    else:
+        results = metadata.search_playlists(playlist)
 
-    tracks = metadata.tracks(info['id'])
+    if not results:
+        raise Exception("No playlist found")
+
+    selected = choose_playlist(results)
+    print("fetching metadata...")
+    tracks = metadata.tracks(selected['id'])
 
     if not output:
-        output = f"{playlist['name']}.json"
+        output = f"{selected['name']}.json"
 
     with open(output, mode='w') as f:
         f.write(json.dumps(tracks))
+
+
+def choose_playlist(results):
+    print("Choose a playlist:")
+    pick = 0
+    while not 1 <= pick <= len(results):
+        for pos, result in enumerate(results, 1):
+            print(f"{pos} - {result['name']} ({result['owner']['display_name']})")
+        print()
+
+        try:
+            pick = int(input("Choice: "))
+        except ValueError:
+            print("Invalid input")
+
+    return results[pick-1]
 
 
 @cli.command(help='compare spotify BPM with a tapped BPM')
