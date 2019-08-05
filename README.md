@@ -58,4 +58,4 @@ Add currently playing song to a playlist
 Add the song that is currently playing on your device to a playlist on spotify. I have this configured as a
 keyboard shortcut so I can add songs that are playling to a playlist that I can reorganize later. Example:
 
-    spotify add_current "Todo playlist"
+    spotify add-current "Todo playlist"
