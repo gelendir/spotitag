@@ -78,5 +78,21 @@ def export(ctx, filename, playlist, public):
     client.user_playlist_add_tracks(user['id'], response['id'], track_ids)
 
 
+@cli.command(help="add currently playing song to a playlist")
+@click.argument('playlist')
+@click.pass_context
+def add_current(ctx, playlist):
+    client = ctx.obj['client']
+    metadata = Metadata(client)
+
+    user = client.current_user()
+    info = metadata.find_playlist(playlist)
+    if not info:
+        raise Exception(f"Playlist {playlist} not found")
+
+    response = client.currently_playing()
+    client.user_playlist_add_tracks(user['id'], info['id'], [response['item']['id']])
+
+
 if __name__ == "__main__":
     cli()
