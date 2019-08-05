@@ -26,9 +26,7 @@ Ctrl - q:       Quit and save tags to file
 """
 
 
-class State:
-    show_help = False
-
+STATE = {'help': False}
 
 player = None
 ticker = None
@@ -75,7 +73,7 @@ layout = Layout(
                         Label(text=HELP_TEXT),
                         title="Help"
                     ),
-                    filter=Condition(lambda: State.show_help)
+                    filter=Condition(lambda: STATE['help'])
                 )
             )
         ]
@@ -140,7 +138,7 @@ def tag_spotify_bpm(event):
 
 @kb.add('?')
 def toggle_help(event):
-    State.show_help = not State.show_help
+    STATE['help'] = not STATE['help']
 
 
 def tag_bpm(bpm):
