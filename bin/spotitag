@@ -109,12 +109,12 @@ def add_current(ctx, playlist):
     metadata = Metadata(client)
 
     user = client.current_user()
-    info = metadata.find_playlist(playlist)
-    if not info:
-        raise Exception(f"Playlist {playlist} not found")
+    results = metadata.find_user_playlists(playlist)
+    if len(results) != 1:
+        raise Exception(f"Expected 1 playlist. Found {len(results)}")
 
     response = client.currently_playing()
-    client.user_playlist_add_tracks(user['id'], info['id'], [response['item']['id']])
+    client.user_playlist_add_tracks(user['id'], results[0]['id'], [response['item']['id']])
 
 
 if __name__ == "__main__":
