@@ -52,6 +52,17 @@ Export a JSON file to a new playlist in your spotify account. Example:
 
     spotitag export playlist.json "New Playlist"
 
+Merge playlists together
+------------------------
+
+Merge multiple files together into a single file. If two files contain the exact
+same track, their metadata tags will get merged together.
+
+Useful if you want to combine different playlists together, update an old
+playlist with new songs from spotify, or combine tags from different files together.
+
+    spotitag merge --output combined.json file-1.json file-2.json
+
 Add currently playing song to a playlist
 ----------------------------------------
 

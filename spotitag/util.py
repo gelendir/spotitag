@@ -1,3 +1,6 @@
+import copy
+import collections
+
 import spotipy
 import spotipy.util as util
 
@@ -31,3 +34,13 @@ def pick_device(sp):
             print("Invalid input")
 
     return devices[pick]
+
+
+def merge(bottom, top):
+    bottom = copy.deepcopy(bottom)
+    for key, value in top.items():
+        if isinstance(value, collections.Mapping):
+            bottom[key] = merge(bottom.get(key, {}), value)
+        else:
+            bottom[key] = value
+    return bottom

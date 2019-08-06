@@ -4,7 +4,7 @@ import click
 import os
 import json
 
-from spotitag.util import login, pick_device
+from spotitag import util
 from spotitag.metadata import Metadata
 from spotitag import ui
 
@@ -20,7 +20,7 @@ def cli(ctx, username):
         raise Exception("SPOTIPY_CLIENT_SECRET required")
 
     ctx.ensure_object(dict)
-    ctx.obj['client'] = login(username)
+    ctx.obj['client'] = util.login(username)
 
 
 @cli.command(name='import', help='import a spotify playlist to JSON')
@@ -77,7 +77,7 @@ def bpm(ctx, playlist, output):
     with open(playlist) as f:
         tracks = json.loads(f.read())
 
-    device = pick_device(ctx.obj['client'])
+    device = util.pick_device(ctx.obj['client'])
     tracks = ui.run(ctx.obj['client'], device['id'], tracks)
 
     with open(output, mode='w') as f:
@@ -99,6 +99,29 @@ def export(ctx, filename, playlist, public):
 
     track_ids = [t['id'] for t in tracks]
     client.user_playlist_add_tracks(user['id'], response['id'], track_ids)
+
+
+@cli.command(help="merge playlist files together")
+@click.argument('filenames', nargs=-1)
+@click.option('--output', required=True, help="output file")
+@click.pass_context
+def merge(ctx, filenames, output):
+    tracks = {}
+
+    for filename in filenames:
+        with open(filename) as f:
+            loaded = json.loads(f.read())
+
+        for track in loaded:
+            track_id = track['id']
+            if track_id in tracks:
+                loaded[track_id] = util.merge(loaded[track_id], track)
+            else:
+                tracks[track_id] = track
+
+    playlist = list(tracks.values())
+    with open(output, mode='w') as f:
+        f.write(json.dumps(playlist))
 
 
 @cli.command(help="add currently playing song to a playlist")
